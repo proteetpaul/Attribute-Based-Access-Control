@@ -28,7 +28,7 @@ for i in range(0,nrectangles):
     rectangle=[]
     for j in range(0,dimen):
         l=random.randint(limits[j][0],limits[j][1]-1)
-        u=random.randint(limits[j][0]+1,limits[j][1])
+        u=random.randint(l+1,limits[j][1])
         rectangle.append([l,u])
     if(check_dup_rectangle(rectangle_set,rectangle,dimen)):
         i-=1

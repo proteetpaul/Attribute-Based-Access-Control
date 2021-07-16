@@ -7,6 +7,7 @@ from anytree import NodeMixin, RenderTree
 
 class node(NodeMixin):
     """ Class to represent rtree node """
+
     def __init__(self, id):
         super(node, self).__init__()
         self.id = id
@@ -14,7 +15,6 @@ class node(NodeMixin):
         self.children_ = list()
         self.isLeaf = True
         self.parent = None
-
 
 
 inputfile = open("rectangles.txt", "r")
@@ -101,9 +101,11 @@ def PickNext(n, rec1, rec2):
 
 # Merge rec2 with rec1
 def MergeRectangles(rec1, rec2):
+    result = []
     for i in range(0, dimen):
-        rec1[i][0] = min(rec1[i][0], rec2[i][0])
-        rec1[i][1] = max(rec1[i][1], rec2[i][1])
+        result.append([min(rec1[i][0], rec2[i][0]),
+                      max(rec1[i][1], rec2[i][1])])
+    return result
 
 # Splits a node containing M+1 entries using quadratic cost algorithm
 def SplitNode(n):
@@ -159,13 +161,13 @@ def SplitNode(n):
         n.bounding_rectangles.pop(recidx)
         if group == 1:
             l.bounding_rectangles.append(rec)
-            MergeRectangles(rec1, rec)
+            rec1 = MergeRectangles(rec1, rec)
             len1 += 1
             if n.isLeaf == 0:
                 l.children_.append(n.children_[recidx])
         else:
             ll.bounding_rectangles.append(rec)
-            MergeRectangles(rec2, rec)
+            rec2 = MergeRectangles(rec2, rec)
             len2 += 1
             if n.isLeaf == 0:
                 ll.children_.append(n.children_[recidx])
@@ -187,6 +189,7 @@ def GetBoundingRectangle(reclist):
             mn = min(mn, rec1[i][0])
         rec.append([mn, mx])
     return rec
+
 
 def getParentIndex(parent, child):
     if parent == None:
@@ -244,16 +247,13 @@ def insert(root, rectangle):
     return AdjustTree(l, ll, idx)
 
 root = node(0)
-print(len(rectangle_set))
 for rec in rectangle_set:
     root = insert(root, rec)
     for pre, _, node1 in RenderTree(root):
         x = len(node1.children_)
-        if x == 0:
-            print("%s%s %s %s" % (pre, str(node1.id), str(
-                len(node1.bounding_rectangles)), '0'))
-        else:
-            print("%s%s %s %s" % (pre, str(node1.id), str(
-                len(node1.bounding_rectangles)), str(x)))
+        print("%s%s %s" % (pre, str(node1.id), str(
+            len(node1.bounding_rectangles))))
+        print(node1.bounding_rectangles)
+    print()
 outputfile = open("rtree.pkl", "wb")
 pickle.dump(root, outputfile, -1)

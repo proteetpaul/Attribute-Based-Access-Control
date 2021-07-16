@@ -30,7 +30,7 @@ for i in range(0, nqueries):
     rectangle = []
     for j in range(0, dimen):
         l = random.randint(limits[j][0], limits[j][1]-1)
-        u = random.randint(limits[j][0]+1, limits[j][1])
+        u = random.randint(l+1, limits[j][1])
         rectangle.append([l, u])
     queryRectangles.append(rectangle)
 
