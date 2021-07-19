@@ -1,7 +1,6 @@
-import pickle
-import random
 import json
 import time
+import pickle
 from anytree import NodeMixin, RenderTree
 
 
@@ -17,30 +16,20 @@ class node(NodeMixin):
         self.parent = None
 
 
-nqueries = int(input("Enter no. of queries:"))
 inputfile = open("rtree.pkl", "rb")
 inputfile2 = open("rtreeparams.txt", "r")
 root = pickle.load(inputfile)
-for pre,_,node1 in RenderTree(root):
-    print("%s%s %s" % (pre,node1.id,len(node1.bounding_rectangles)))
+for pre, _, node1 in RenderTree(root):
+    print("%s%s %s" % (pre, node1.id, len(node1.bounding_rectangles)))
 inputfile2.readline()
 dimen = int(inputfile2.readline())
-limits = json.load(inputfile2)
-queryRectangles = []
-for i in range(0, nqueries):
-    rectangle = []
-    for j in range(0, dimen):
-        l = random.randint(limits[j][0], limits[j][1]-1)
-        u = random.randint(l+1, limits[j][1])
-        rectangle.append([l, u])
-    queryRectangles.append(rectangle)
-
+print(dimen)
 
 def CheckOverlap(rec1, rec2):
     """ Check overlap between 2 rectangles """
     global dimen
     for i in range(0, dimen):
-        if rec1[i][1] <= rec2[i][0] or rec1[i][0] >= rec2[i][1]:
+        if rec1[i][1] < rec2[i][0] or rec1[i][0] > rec2[i][1]:
             return False
     return True
 
@@ -55,19 +44,21 @@ def SearchTreeForOverlap(n, rectangle, resultList):
                 SearchTreeForOverlap(n.children_[i], rectangle, resultList)
 
 
+queries_file = open("rtree_queries.txt", "r")
+queryRectangles = json.load(queries_file)
 result = []
-times=[]
+times = []
 for rec in queryRectangles:
     resultList = []
-    start=time.time()
+    start = time.time()
     SearchTreeForOverlap(root, rec, resultList)
-    end=time.time()
+    end = time.time()
     times.append(end-start)
-    result.append(resultList)
+    if len(resultList) > 0:
+        result.append('Yes')
+    else:
+        result.append('No')
 
 outputfile = open("output.txt", "w")
 json.dump(result, outputfile, indent=4)
-json.dump(times,outputfile,indent=4)
-
-outputfile2=open("queries.txt","w")
-json.dump(queryRectangles, outputfile2, indent=4)
+json.dump(times, outputfile, indent=4)

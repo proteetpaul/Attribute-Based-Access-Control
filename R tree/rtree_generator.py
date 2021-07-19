@@ -59,7 +59,7 @@ def ChooseLeaf(root, rectangle):
 
 # Choosing 2 entries that would waste most area if they were put together
 def PickSeeds(n):
-    maxarea = 0
+    maxarea = -1
     idx = []
     l = len(n.bounding_rectangles)
     for i in range(0, l):

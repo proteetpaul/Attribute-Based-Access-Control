@@ -52,7 +52,6 @@ for i in range(0,np):
     if check_dup_policy(policies,arr):
         i-=1
         continue
-    print(arr)
     policies.append(arr)
 
 #bulding user entities using generated policies
@@ -121,12 +120,14 @@ objects_file=open("objects.txt","w")
 env_file=open("env.txt","w")
 pol_file=open("policies.txt","w")
 entity_set_file=open("entity_sets.pkl","wb")
+values_file=open("values.txt","w")
 
 # Writing required values to the files
 users_file.write(str(nu)+' '+str(ua)+'\n')
 objects_file.write(str(no)+' '+str(oa)+'\n')
 env_file.write(str(ne)+' '+str(ea)+'\n')
 pol_file.write(str(np)+' '+str(nops)+'\n')
+values_file.write(str(nv))
 
 # Dumping the lists of entities as json objects into the files
 json.dump(user_list,users_file,indent=4)
