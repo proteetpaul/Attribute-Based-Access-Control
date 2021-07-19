@@ -175,6 +175,8 @@ def SplitNode(n):
             n.children_.pop(recidx)
     n.bounding_rectangles = l.bounding_rectangles
     n.children_ = l.children_
+    for child in n.children_:
+        child.parent = n
     return ll
 
 # Calculate bounding rectangle of a list of rectangles
@@ -215,6 +217,8 @@ def AdjustTree(l, ll, idx):
             parent.children_.append(ll)
             if len(parent.bounding_rectangles) == M+1:
                 pp = SplitNode(parent)
+                for child in pp.children_:
+                    child.parent = pp
                 return AdjustTree(parent, pp, idx2)
         return AdjustTree(parent, None, idx2)
     else:
@@ -238,7 +242,6 @@ def AdjustTree(l, ll, idx):
 def insert(root, rectangle):
     idx = -1
     l = ChooseLeaf(root, rectangle)
-    # print(l.id)
     idx = getParentIndex(l.parent, l)
     l.bounding_rectangles.append(rectangle)
     ll = None
@@ -253,7 +256,7 @@ for rec in rectangle_set:
         x = len(node1.children_)
         print("%s%s %s" % (pre, str(node1.id), str(
             len(node1.bounding_rectangles))))
-        print(node1.bounding_rectangles)
+        # print(node1.bounding_rectangles)
     print()
 outputfile = open("rtree.pkl", "wb")
 pickle.dump(root, outputfile, -1)
