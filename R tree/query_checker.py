@@ -19,30 +19,25 @@ oa = int(oa)
 npol = int(npol)
 nop = int(nop)
 nv = int(values_file.readline())
-dimen = ua+ea+oa+1
 pol_list = json.load(pol_file)
 
-dict1 = {}
-cnt = 1
-for i in range(0, ua):
-    dict1['u'+str(i+1)] = cnt
-    cnt += 1
-for i in range(0, oa):
-    dict1['o'+str(i+1)] = cnt
-    cnt += 1
-for i in range(0, ea):
-    dict1['e'+str(i+1)] = cnt
-    cnt += 1
-dict1['op'] = cnt
-
-reqlist2 = []
+resfile=open("results.txt","w")
+res=[]
 for query in req_list1:
-    rectangle = []
-    for i in range(0, cnt):
-        rectangle.append([])
-    for x in query:
-        rectangle[dict1[x]-1] = [query[x], query[x]]
-    reqlist2.append(rectangle)
-
-outfile = open("rtree_queries.txt", "w")
-json.dump(reqlist2, outfile)
+    f1=0
+    for pol in pol_list:
+        f=1
+        for x in pol:
+            if pol[x]==0:
+                continue
+            if pol[x]!=query[x]:
+                f=0
+                break
+        if f==1:
+            f1=1
+            break
+    if f1==1:
+        res.append("Yes")
+    else :
+        res.append("No")
+json.dump(res,resfile)

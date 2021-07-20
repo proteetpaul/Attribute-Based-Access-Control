@@ -143,6 +143,10 @@ def SplitNode(n):
                 len1 += 1
             n.bounding_rectangles = l.bounding_rectangles
             n.children_ = l.children_
+            for child in n.children_:
+                child.parent = n
+            for child in ll.children_:
+                child.parent = ll
             return ll
         if (m-len2) == (M+1-cnt):
             while len2 < m:
@@ -154,6 +158,10 @@ def SplitNode(n):
                 len2 += 1
             n.bounding_rectangles = l.bounding_rectangles
             n.children_ = l.children_
+            for child in n.children_:
+                child.parent = n
+            for child in ll.children_:
+                child.parent = ll
             return ll
 
         recidx, group = PickNext(n, rec1, rec2)
@@ -175,8 +183,6 @@ def SplitNode(n):
             n.children_.pop(recidx)
     n.bounding_rectangles = l.bounding_rectangles
     n.children_ = l.children_
-    for child in n.children_:
-        child.parent = n
     return ll
 
 # Calculate bounding rectangle of a list of rectangles
@@ -197,8 +203,8 @@ def getParentIndex(parent, child):
     if parent == None:
         return -1
     j = 0
-    for child in parent.children_:
-        if child == parent:
+    for child_ in parent.children_:
+        if child == child_:
             return j
         j += 1
     return -1
@@ -256,7 +262,7 @@ for rec in rectangle_set:
         x = len(node1.children_)
         print("%s%s %s" % (pre, str(node1.id), str(
             len(node1.bounding_rectangles))))
-        # print(node1.bounding_rectangles)
+        print(node1.bounding_rectangles)
     print()
 outputfile = open("rtree.pkl", "wb")
 pickle.dump(root, outputfile, -1)
