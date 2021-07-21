@@ -41,7 +41,12 @@ for query in req_list1:
     for i in range(0, cnt):
         rectangle.append([])
     for x in query:
-        rectangle[dict1[x]-1] = [query[x], query[x]]
+        if query[x]!=0:
+            rectangle[dict1[x]-1] = [query[x], query[x]]
+        elif x=='op':
+            rectangle[dict1[x]-1] = [1, nop]
+        else :
+            rectangle[dict1[x]-1] = [1, nv]
     reqlist2.append(rectangle)
 
 outfile = open("rtree_queries.txt", "w")

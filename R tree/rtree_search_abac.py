@@ -38,7 +38,7 @@ def SearchTreeForOverlap(n, rectangle, resultList):
     """ Search the tree to find overlapping rectangles """
     for i in range(0, len(n.bounding_rectangles)):
         if CheckOverlap(rectangle, n.bounding_rectangles[i]):
-            if n.isLeaf:
+            if n.isLeaf==1:
                 resultList.append(n.bounding_rectangles[i])
             else:
                 SearchTreeForOverlap(n.children_[i], rectangle, resultList)

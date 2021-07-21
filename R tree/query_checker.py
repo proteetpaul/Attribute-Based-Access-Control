@@ -28,7 +28,7 @@ for query in req_list1:
     for pol in pol_list:
         f=1
         for x in pol:
-            if pol[x]==0:
+            if pol[x]==0 or query[x]==0:
                 continue
             if pol[x]!=query[x]:
                 f=0
