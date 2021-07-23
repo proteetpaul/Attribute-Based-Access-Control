@@ -1,19 +1,8 @@
 import json
 import time
 import pickle
-from anytree import NodeMixin, RenderTree
-
-
-class node(NodeMixin):
-    """ Class to represent rtree node """
-
-    def __init__(self, id):
-        super(node, self).__init__()
-        self.id = id
-        self.bounding_rectangles = list()
-        self.children_ = list()
-        self.isLeaf = True
-        self.parent = None
+from rtree_node import node
+from anytree import RenderTree
 
 
 inputfile = open("rtree.pkl", "rb")
@@ -24,6 +13,7 @@ for pre, _, node1 in RenderTree(root):
 inputfile2.readline()
 dimen = int(inputfile2.readline())
 print(dimen)
+nodesVisited = 0
 
 def CheckOverlap(rec1, rec2):
     """ Check overlap between 2 rectangles """
@@ -35,6 +25,8 @@ def CheckOverlap(rec1, rec2):
 
 
 def SearchTreeForOverlap(n, rectangle, resultList):
+    global nodesVisited
+    nodesVisited=nodesVisited+1
     """ Search the tree to find overlapping rectangles """
     for i in range(0, len(n.bounding_rectangles)):
         if CheckOverlap(rectangle, n.bounding_rectangles[i]):
@@ -55,9 +47,10 @@ for rec in queryRectangles:
     end = time.time()
     times.append(end-start)
     if len(resultList) > 0:
-        result.append('Yes')
+        result.append(['Yes', nodesVisited])
     else:
         result.append('No')
+    nodesVisited = 0
 
 outputfile = open("output.txt", "w")
 json.dump(result, outputfile, indent=4)

@@ -2,19 +2,8 @@ import json
 import pickle
 import random
 import sys
-import json
-from anytree import NodeMixin, RenderTree
-
-class node(NodeMixin):
-    """ Class to represent rtree node """
-
-    def __init__(self, id):
-        super(node, self).__init__()
-        self.id = id
-        self.bounding_rectangles = list()
-        self.children_ = list()
-        self.isLeaf = True
-        self.parent = None
+from rtree_node import node
+from anytree import RenderTree
 
 
 inputfile = open("rectangles.txt", "r")
@@ -262,7 +251,6 @@ for rec in rectangle_set:
         x = len(node1.children_)
         print("%s%s %s" % (pre, str(node1.id), str(
             len(node1.bounding_rectangles))))
-        print(node1.bounding_rectangles)
     print()
 outputfile = open("rtree.pkl", "wb")
 pickle.dump(root, outputfile, -1)
