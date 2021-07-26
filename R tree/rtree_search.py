@@ -23,7 +23,6 @@ inputfile2 = open("rtreeparams.txt", "r")
 root = pickle.load(inputfile)
 for pre,_,node1 in RenderTree(root):
     print("%s%s %s" % (pre,node1.id,len(node1.bounding_rectangles)))
-inputfile2.readline()
 dimen = int(inputfile2.readline())
 limits = json.load(inputfile2)
 queryRectangles = []

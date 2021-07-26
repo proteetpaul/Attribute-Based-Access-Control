@@ -2,9 +2,6 @@ import json
 import pickle
 import os
 
-M = int(input("M value of R tree:"))
-m = int(input("m value of R tree:"))
-
 pol_file = open("policies.txt", "r")
 users_file = open("users.txt", "r")
 obj_file = open("objects.txt", "r")
@@ -21,7 +18,9 @@ ea = int(ea)
 oa = int(oa)
 npol = int(npol)
 nop = int(nop)
-nv = int(values_file.readline())
+nvu = int(values_file.readline())
+nvo = int(values_file.readline())
+nve = int(values_file.readline())
 dimen = ua+ea+oa+1
 pol_list = json.load(pol_file)
 
@@ -48,13 +47,16 @@ for pol in pol_list:
             rec[dict1[x]-1] = [pol[x], pol[x]]
         elif x == 'op':
             rec[dict1[x]-1] = [1, nop]
+        elif x[0]=='o':
+            rec[dict1[x]-1] = [1, nvo]
+        elif x[0]=='e':
+            rec[dict1[x]-1] = [1, nve]
         else:
-            rec[dict1[x]-1] = [1, nv]
+            rec[dict1[x]-1] = [1, nvu]
     rec_list.append(rec)
 
 file = open("rectangles.txt", "w")
 json.dump(rec_list, file, indent=4)
 
 file2 = open("rtreeparams.txt", "w")
-file2.write(str(M)+' '+str(m))
 file2.write('\n'+str(dimen)+'\n')

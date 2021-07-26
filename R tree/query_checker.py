@@ -1,29 +1,7 @@
 import json
+import time
 
-pol_file = open("policies.txt", "r")
-users_file = open("users.txt", "r")
-obj_file = open("objects.txt", "r")
-env_file = open("env.txt", "r")
-values_file = open("values.txt", "r")
-
-query_file = open("requests.txt", "r")
-req_list1 = json.load(query_file)
-_, ua = users_file.readline().split()
-_, ea = env_file.readline().split()
-_, oa = obj_file.readline().split()
-npol, nop = pol_file.readline().split()
-
-ua = int(ua)
-ea = int(ea)
-oa = int(oa)
-npol = int(npol)
-nop = int(nop)
-nv = int(values_file.readline())
-pol_list = json.load(pol_file)
-
-resfile=open("results.txt","w")
-res=[]
-for query in req_list1:
+def query_checker(query, req_list1):
     f1=0
     for pol in pol_list:
         f=1
@@ -36,8 +14,39 @@ for query in req_list1:
         if f==1:
             f1=1
             break
+    return f1
+
+pol_file = open("policies.txt", "r")
+
+query_file = open("requests.txt", "r")
+req_list1 = json.load(query_file)
+npol, nop = pol_file.readline().split()
+pol_list = json.load(pol_file)
+
+resfile=open("results.txt","w")
+resultsFile = open("seq_search_results.txt", "a")
+res=[]
+nallowed = 0
+ndenied = 0
+totalTimeAllowed = 0
+totalTimeDenied = 0
+for query in req_list1:
+    start=time.time()
+    f1 = query_checker(query,req_list1)
+    end = time.time()
+    timeTaken = end-start
     if f1==1:
-        res.append("Yes")
+        res.append([timeTaken, "Yes"])
+        nallowed += 1
+        totalTimeAllowed += timeTaken
     else :
-        res.append("No")
-json.dump(res,resfile)
+        res.append([timeTaken, "No"])
+        ndenied += 1
+        totalTimeDenied += timeTaken
+json.dump(res,resfile,indent=4)
+
+avgTimeAllowed = totalTimeAllowed/nallowed
+avgTimeDenied = totalTimeDenied/ndenied
+avgTime = (totalTimeAllowed + totalTimeDenied)/(nallowed + ndenied)
+list1 = [avgTimeAllowed, avgTimeDenied, avgTime]
+json.dump(list1, resultsFile, indent = 4)

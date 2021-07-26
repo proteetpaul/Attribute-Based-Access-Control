@@ -2,16 +2,14 @@ import json
 import pickle
 import random
 import sys
+import math
 from rtree_node import node
 from anytree import RenderTree
+import resource
 
 
 inputfile = open("rectangles.txt", "r")
 rectangle_set = json.load(inputfile)
-inputfile2 = open("rtreeparams.txt", "r")
-M, m = inputfile2.readline().split()
-M = int(M)
-m = int(m)
 curid = 1
 # Stores id of root during insertion
 rootid = 0
@@ -20,6 +18,21 @@ nrectangles = len(rectangle_set)
 if nrectangles == 0:
     exit
 dimen = len(rectangle_set[0])
+
+def calcM():
+    """ Function to calculate M value for R tree"""
+    global dimen
+    pagesize = resource.getpagesize()
+    print(dimen)
+    recsize = dimen * 2 * 4
+    ptrsize = 8 # Taking size of pointer as 8 bytes
+    M = pagesize/(recsize + ptrsize)
+    print(M)
+    M = math.floor(M)
+    m = math.floor(M/2)
+    return M, m
+M, m = calcM()
+print(str(M)+' '+str(m))
 
 # function to calculate area of rectangle
 def calcArea(rec):
@@ -247,10 +260,10 @@ def insert(root, rectangle):
 root = node(0)
 for rec in rectangle_set:
     root = insert(root, rec)
-    for pre, _, node1 in RenderTree(root):
-        x = len(node1.children_)
-        print("%s%s %s" % (pre, str(node1.id), str(
-            len(node1.bounding_rectangles))))
-    print()
+    # for pre, _, node1 in RenderTree(root):
+    #     x = len(node1.children_)
+    #     print("%s%s %s" % (pre, str(node1.id), str(
+    #         len(node1.bounding_rectangles))))
+    # print()
 outputfile = open("rtree.pkl", "wb")
 pickle.dump(root, outputfile, -1)

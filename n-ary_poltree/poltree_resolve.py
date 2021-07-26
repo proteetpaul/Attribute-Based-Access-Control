@@ -40,10 +40,30 @@ def n_ary_resolve_any(curnode, access_req):
 
 req_file=open("requests.txt","r")
 req_list=json.load(req_file)
+outfile = open("poltree_output.txt","w")
+resultsfile = open("poltree_results.txt","a")
+reslist = []
 
+nallowed = 0
+ndenied = 0
+totalTimeAllowed = 0
+totalTimeDenied = 0
 for req in req_list:
     start=time.time()
     dec=n_ary_resolve_any(node_list[0],req)
     end=time.time()
-    print(dec)
-    print("time="+str(end-start))
+    reslist.append([dec, end-start])  
+    if dec=='allow':
+        totalTimeAllowed += end-start
+        nallowed += 1
+    else:
+        totalTimeDenied += end-start
+        ndenied += 1
+
+avgTimeAllowed = totalTimeAllowed/nallowed
+avgTimeDenied = totalTimeDenied/ndenied
+avgTime = (totalTimeAllowed + totalTimeDenied)/(nallowed + ndenied)
+list1 = [avgTimeAllowed, avgTimeDenied, avgTime]
+json.dump(list1, resultsfile, indent = 4)
+json.dump(reslist, outfile, indent = 4)
+
