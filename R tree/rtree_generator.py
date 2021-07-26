@@ -46,6 +46,7 @@ def ChooseLeaf(root, rectangle):
         return root
     minEnlargement = sys.maxsize
     idx = 0
+    minArea = sys.maxsize
     j = 0
     for rec in root.bounding_rectangles:
         initialArea = calcArea(rec)
@@ -56,6 +57,10 @@ def ChooseLeaf(root, rectangle):
         if enlargedArea-initialArea < minEnlargement:
             minEnlargement = enlargedArea-initialArea
             idx = j
+            minArea = initialArea
+        elif enlargedArea-initialArea == minEnlargement and initialArea < minArea:
+            idx = j
+            minArea = initialArea
         j += 1
     return ChooseLeaf(root.children_[idx], rectangle)
 
