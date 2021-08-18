@@ -6,11 +6,12 @@ import math
 def calcMinDist(point, rectangle, dimen):
     mindist = 0
     for i in range(0,dimen):
-        r=point[i]
-        if point[i]<rectangle[i][0]:
-            r = rectangle[i][0]
-        elif point[i]>rectangle[i][1]:
-            r = rectangle[i][1]
+        # r=point[i]
+        # if point[i]<rectangle[i][0]:
+        #     r = rectangle[i][0]
+        # elif point[i]>rectangle[i][1]:
+        #     r = rectangle[i][1]
+        r = rectangle[i][0]
         mindist += math.pow(point[i]-r,2)
     return mindist
 
@@ -26,13 +27,16 @@ def nnsearch(point, reclist, dimen):
         i += 1
     return res,reclist[residx]
 
-def seq_search_nn():
-    recfile = open("rectangles.txt","r")
+def seq_search_nn(nr):
+    recfilename = str(nr)+"rectangles.txt"
+    recfile = open(recfilename,"r")
     reclist = json.load(recfile)
     queriesfile = open("nnqueries.txt","r")
-    outputfile = open("nnSeqSearchOutput.txt","w")
+    outfilename = str(nr)+"rectangles_nnSeqSearchOutput.txt"
+    outputfile = open(outfilename,"w")
     resfile = open("nnSeqSearchResults.txt","a")
-    infile = open("NNSearchOutput.txt","r")
+    infilename = str(nr)+"rectanglesNNSearchOutput.txt"
+    infile = open(infilename,"r")
     queries = json.load(queriesfile)
     dimen = len(reclist[0])
     res = []
@@ -51,5 +55,6 @@ def seq_search_nn():
             errors+=1
     avgtime = totalTime/len(queries)
     print(errors)
-    resfile.write('\n'+str(avgtime))
+    resfile.write(str(nr)+" rectangles: ")
+    resfile.write(str(avgtime)+'\n')
     json.dump(res, outputfile)
