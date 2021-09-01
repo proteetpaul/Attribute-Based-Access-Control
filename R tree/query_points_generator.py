@@ -9,7 +9,7 @@ def gen_query_points():
     x = limits[0]
     y = limits[1]
     points = []
-    for i in range(0,1):
+    for i in range(0,500):
         p = list()
         for j in range(0,dimen):
             l = random.randint(x, y)
