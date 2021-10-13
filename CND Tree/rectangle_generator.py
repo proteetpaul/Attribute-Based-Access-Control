@@ -15,7 +15,7 @@ def generate_rectangles(nr, cdimen, ddimen):
             l = random.randint(x,y1)
             l/=100
             rec.c_arr.append([l,l])
-        y2 = 10
+        y2 = 30
         for j in range(0,ddimen):
             l2 = random.randint(1,y2)
             rec.d_arr.append(set([l2]))
@@ -24,7 +24,7 @@ def generate_rectangles(nr, cdimen, ddimen):
     for i in range(0,cdimen):
         cds_lengths.append(100)
     for i in range(0,ddimen):
-        ndds_lengths.append(10)
+        ndds_lengths.append(30)
         
     filename = str(nr)+"rectangles.pkl"
     file = open(filename, "wb")
@@ -34,4 +34,3 @@ def generate_rectangles(nr, cdimen, ddimen):
     nddsfile = open("ndds_lengths.txt", "w")
     json.dump(ndds_lengths, nddsfile)
 
-generate_rectangles(20, 2, 2)

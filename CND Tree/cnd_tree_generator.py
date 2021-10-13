@@ -209,8 +209,8 @@ def CombinePartitions(cpartitions, dpartitions, node, M, cds_lengths, nds_length
     perimeter1 = calcPerimeter2D(cg1_2d, cdim_length, ddim_length)
     perimeter2 = calcPerimeter2D(cg2_2d, cdim_length, ddim_length)
 
-    print(cg1)
-    print(cg2)
+    # print(cg1)
+    # print(cg2)
     for i in s1:
         rec = []
         rec.append(node.dmbrs[i][ddim])
@@ -237,8 +237,12 @@ def CombinePartitions(cpartitions, dpartitions, node, M, cds_lengths, nds_length
         mergeArea2 = calcArea2D(merge2, cdim_length, ddim_length)
         mergePerimeter1 = calcPerimeter2D(merge1, cdim_length, ddim_length)
         mergePerimeter2 = calcPerimeter2D(merge2, cdim_length, ddim_length)
-        t1 = (mergePerimeter1-perimeter1)/(mergeArea1-area1)
-        t2 = (mergePerimeter2-perimeter2)/(mergeArea2-area2)
+        t1 = (mergePerimeter1-perimeter1)
+        if mergeArea1-area1 != 0:
+            t1 /= (mergeArea1-area1)
+        t2 = (mergePerimeter2-perimeter2)
+        if mergeArea2-area2:
+            t2 /= (mergeArea2-area2)
         if t1 < t2 or (t1==t2 and len(cg1) < len(cg2)):
             cg1_2d = merge1
             area1 = calcArea2D(cg1_2d, cdim_length, ddim_length)
@@ -361,14 +365,15 @@ def build_rtree(nr):
     if nrectangles == 0:
         exit
     root = cnd_tree_node(0)
-    M = 5
-    m = 2
+    M = 20
+    m = 10
     print(str(M)+' '+str(m))
     for rec in rectangle_set:
+        # print(rec.c_arr)
         root = insert(root, rec)
-        for pre, _, node1 in RenderTree(root):
-            x = len(node1.children_)
-            print("%s%s %s" % (pre, str(node1.id), str(len(node1.dmbrs)) ))
+    for pre, _, node1 in RenderTree(root):
+        x = len(node1.children_)
+        print("%s%s %s" % (pre, str(node1.id), str(len(node1.cmbrs) )))
     print(curid)
     outputfile = open("cndtree.pkl", "wb")
     pickle.dump(root, outputfile, -1)
@@ -376,5 +381,4 @@ def build_rtree(nr):
     curid = 1
     rootid = 0
 
-build_rtree(20)
 # find nearest neighbour using sequential search then use the nn distance to generate range values

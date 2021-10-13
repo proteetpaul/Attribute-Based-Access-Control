@@ -58,7 +58,9 @@ def SelectPartition(node, partition_set, cds_lengths, cdimen):
         dim = partition_set[i][1]
         y1 = p1[dim][1]-p1[dim][0]
         y2 = p2[dim][1]-p2[dim][0]
-        balance = max(y1,y2)/min(y1,y2)
+        balance = max(y1,y2)
+        if min(y1,y2) != 0:
+            balance = max(y1,y2)/min(y1,y2)
         span = max(y1,y2) - min(y1,y2)
         x = OverlapInCDS(p1, p2, cdimen, cds_lengths)
         if x < minOverlap:

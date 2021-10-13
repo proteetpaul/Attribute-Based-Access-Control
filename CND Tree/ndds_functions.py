@@ -3,6 +3,13 @@ import functools
 import sys
 from anytree import RenderTree
 
+def cnt_elements(str1):
+    cnt = 0
+    for c in str1:
+        if c=='1':
+            cnt+=1
+    return cnt
+
 def serialize_dset(s1, length):
     res=[]
     for i in range(0,length):
@@ -15,9 +22,9 @@ def serialize_dset(s1, length):
     return str1
 
 def cset_compare(a,b):
-    if len(a[0])<len(b[0]):
+    if cnt_elements(a[0])<cnt_elements(b[0]):
         return -1
-    elif len(a[0])>len(b[0]):
+    elif cnt_elements(a[0])>cnt_elements(b[0]):
         return 1
     else:
         if a[1]>b[1]:
@@ -41,11 +48,16 @@ def union1(set1, string1):
 
 def UnionStrings(string1, string2):
     """ Calculates union of 2 serialised sets """
+    arr = []
     n = len(string1)
-    string3 = string2.copy()
     for i in range(0,n):
-        if string1[i]=='1':
-            string3[i]='1'
+        if string1[i]=='1' or string2[i] == '1':
+            arr.append('1')
+        else:
+            arr.append('0')
+    string3 = ""
+    for i in arr:
+        string3 = string3 + i
     return string3
 
 def IntersectionStrings(string1, string2):
@@ -57,18 +69,20 @@ def IntersectionStrings(string1, string2):
             res+=1
     return res
 
-def CalcIntersectionSum(ml, length):
+def CalcIntersectionSum(ml):
     """ Calculate sum of intersections obtained by placing a crossing set at a particular position """
     prefix_sets = [ml[0]]
     suffix_sets = [ml[-1]]
     n = len(ml)
-    for i in range(1,n-1):
-        prefix_sets.append(UnionStrings(prefix_sets[i-1], ml[i]))
-    for i in range(n-1,0,-1):
-        suffix_sets.append(UnionStrings(suffix_sets[i+1], ml[i]))
-    res=0
     for i in range(1,n):
-        res+=IntersectionStrings(prefix_sets[i-1], suffix_sets[i])
+        prefix_sets.append(UnionStrings(prefix_sets[i-1], ml[i]))
+    j = 0
+    for i in range(n-2,-1,-1):
+        suffix_sets.append(UnionStrings(suffix_sets[j], ml[i]))
+        j += 1
+    res=0
+    for i in range(0,n-1):
+        res+=IntersectionStrings(prefix_sets[i], suffix_sets[n-2-i])
     return res
     
 def UnionAll(arr, length):
@@ -104,7 +118,7 @@ def BuildAuxTree(node, d, length):
     for letter in l:
         t = aux_tree_node()
         t.letters.add(letter)
-        t.sets.add(serialize_dset(set([letter]), length))
+        # t.sets.add(serialize_dset(set([letter]), length))
         f.append(t)
     #sorting all Dth component sets by size in ascending order and break ties by frequency in descending order
     dict1 = dict()
@@ -179,7 +193,7 @@ def SortComponentSets(t, length):
     s1=list(t.children)
     s1=sorted(s1, key=lambda x: x.freq, reverse = True)
     for x in s1:
-        if len(s1)>0:
+        if x.freq > 0:
             if w1<w2:
                 w1+=x.freq
                 l1.append(UnionAll(x.sets, length))
@@ -193,11 +207,17 @@ def SortComponentSets(t, length):
     # Generating crossing sets
     for s2 in t.sets:
         cnt = 0
+        idx1 = []
+        j = 0
         for t1 in t.children:
             if contains1(t1.letters, s2) == 1:
                 cnt+=1
-        if cnt==0:
+                idx1.append(j)
+            j += 1
+        if cnt>1:
             crossing_sets.add(s2)
+        else:
+            t.children[idx1[0]].sets.add(s2)
     for set1 in crossing_sets:
         n=len(ml)
         idx=-1
@@ -215,23 +235,42 @@ def SortComponentSets(t, length):
         ml.append(set1)
         ml = ml + arr[idx:]
     i = 0
-    res_ml = ml.copy()
-    for t1 in s1:
-        # Check here
-        if len(t1.sets) == 0:
+    # res_ml = ml.copy()
+    res_ml = []
+    # print('len(ml)= '+str(len(ml)))
+    # print('crossing sets= '+str(crossing_sets))
+    # for t1 in s1:
+    #     # Check here
+    #     if len(t1.sets) == 0 or t1.freq == 0:
+    #         continue
+    #     set_list1 = SortComponentSets(t1,length)
+    #     x = UnionAll(t1.sets, length)
+    #     print(x)
+    #     while i < len(ml) and x!=ml[i]:
+    #         res_ml.append(ml[i])
+    #         i+=1
+    #     res_ml=res_ml+set_list1
+    #     i+=1
+
+    for x in ml:
+        if x in crossing_sets:
+            res_ml.append(x)
             continue
-        set_list1 = SortComponentSets(t1,length)
-        x = UnionAll(t1.sets, length)
-        while i < len(ml) and x!=ml[i]:
-            res_ml.append(ml[i])
-            i+=1
-        res_ml=res_ml+set_list1
-        i+=1
+        for t1 in s1:
+            if len(t1.sets) == 0 or t1.freq == 0:
+                continue
+            y = UnionAll(t1.sets, length)
+            if y == x:
+                set_list1 = SortComponentSets(t1,length)
+                res_ml = res_ml + set_list1
+                break
+    # print(len(res_ml))
     return res_ml
 
 def ChoosePartitionSet(node, ndds_lengths, ddimen, m, M):
     """ Choose partition sets for ndds for all dimenions"""
     partition_set = list()
+    # print('dmbrs = '+str(node.dmbrs))
     for i in range(0,ddimen):
         dict1 = dict()
         length = ndds_lengths[i]
@@ -244,12 +283,13 @@ def ChoosePartitionSet(node, ndds_lengths, ddimen, m, M):
         aux_tree = BuildAuxTree(node, i, length)
         # for pre, _, node1 in RenderTree(aux_tree):
         #     x = len(node1.children_)
-        #     print("%s %s" % (pre, str(node1.letters) ))
+        #     print("%s %s %s" % (pre, str(node1.letters), str(node1.sets) ))
         csets_list = SortComponentSets(aux_tree, length)
         entry_set = []
         for x in csets_list:
             for i1 in dict1[x]:
                 entry_set.append(i1)
+        # print(len(entry_set))
         for j in range(m,M-m+2):
             p1=[]
             p2=[]
