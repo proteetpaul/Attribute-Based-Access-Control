@@ -1,24 +1,7 @@
 import math 
 import json
 import pickle
-
-#represents a user entity
-class user:
-    def __init__(self,id):
-        self.id=id
-        self.attrib=dict()
-
-#represents an object entity
-class object:
-    def __init__(self,id):
-        self.id=id
-        self.attrib=dict()
-
-#represents an environment entity
-class env:
-    def __init__(self,id):
-        self.id=id
-        self.attrib=dict()
+from poltree_classes import *
 
 #represents a node of the policy tree
 class node:
@@ -30,12 +13,6 @@ class node:
         self.decision='deny'
         self.op=''
 
-#represents a list of entities, used to generate the policy tree
-class entity_list:
-    def __init__(self):
-        self.user_list=[]
-        self.obj_list=[]
-        self.env_list=[]
 
 #list of nodes of poltree
 node_list=list()
@@ -123,7 +100,7 @@ def gen_poltree(avp_list,attrib_set,pol_list,entities):
             for policy in arr:
                 f1=1
                 for i in policy:
-                    if i in ue.attrib and policy[i]!=ue.attrib[i]: # and policy[i]!=0
+                    if i in ue.attrib and policy[i]!=ue.attrib[i]:
                         f1=0
                         break
                 if f1==1:
@@ -137,7 +114,7 @@ def gen_poltree(avp_list,attrib_set,pol_list,entities):
             for policy in arr:
                 f1=1
                 for i in policy:
-                    if i in oe.attrib and policy[i]!=oe.attrib[i]: # and policy[i]!=0
+                    if i in oe.attrib and policy[i]!=oe.attrib[i]:
                         f1=0
                         break
                 if f1==1:
@@ -151,7 +128,7 @@ def gen_poltree(avp_list,attrib_set,pol_list,entities):
             for policy in arr:
                 f1=1
                 for i in policy:
-                    if i in ee.attrib and policy[i]!=ee.attrib[i]: # and policy[i]!=0
+                    if i in ee.attrib and policy[i]!=ee.attrib[i]:
                         f1=0
                         break
                 if f1==1:

@@ -25,24 +25,25 @@ def n_ary_resolve_any(curnode, access_req, node_list):
     decision='deny'
     for value in curnode.value_list:
         if value==access_req[curnode.attrib]:
-            decision=n_ary_resolve_any(node_list[curnode.children[i]],access_req)
+            decision=n_ary_resolve_any(node_list[curnode.children[i]],access_req, node_list)
             if decision=='allow':
                 return 'allow'
         elif value==0:
-            decision=n_ary_resolve_any(node_list[curnode.children[i]],access_req)
+            decision=n_ary_resolve_any(node_list[curnode.children[i]],access_req, node_list)
             if decision=='allow':
                 return 'allow'
         i+=1
     # print("Exiting node with value 0")
     return 'deny'
 
-def resolve():
+def resolve(np):
     infile=open("poltree.pkl","rb")
     node_list=pickle.load(infile)
 
     req_file=open("requests.txt","r")
     req_list=json.load(req_file)
-    outfile = open("poltree_output.txt","w")
+    outfilename = str(np)+"policies_poltree_output.txt"
+    outfile = open(outfilename,"w")
     resultsfile = open("poltree_results.txt","a")
     reslist = []
 
@@ -66,6 +67,7 @@ def resolve():
     avgTimeDenied = totalTimeDenied/ndenied
     avgTime = (totalTimeAllowed + totalTimeDenied)/(nallowed + ndenied)
     list1 = [avgTimeAllowed, avgTimeDenied, avgTime]
+    resultsfile.write(str(np)+' policies')
     json.dump(list1, resultsfile, indent = 4)
     json.dump(reslist, outfile, indent = 4)
 

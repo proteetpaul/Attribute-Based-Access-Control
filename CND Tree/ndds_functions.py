@@ -3,14 +3,14 @@ import functools
 import sys
 from anytree import RenderTree
 
-def cnt_elements(str1):
+def cnt_elements(str1): # checked
     cnt = 0
     for c in str1:
         if c=='1':
             cnt+=1
     return cnt
 
-def serialize_dset(s1, length):
+def serialize_dset(s1, length):     # checked
     res=[]
     for i in range(0,length):
         res.append('0')
@@ -31,14 +31,14 @@ def cset_compare(a,b):
             return -1
         return 1
 
-def contains1(set1, string1):
+def contains1(set1, string1):   # checked
     """ Function to check if both set1 and string1(serialised form) contain a common element """
     for x in set1:
         if str(string1[x-1])=='1':
             return 1
     return 0
 
-def union1(set1, string1):
+def union1(set1, string1):  # checked
     """ Function to return union of a set and a serialised set (?)"""
     set2 = set1.copy()
     for i in range(0,len(string1)):
@@ -46,7 +46,7 @@ def union1(set1, string1):
             set2.add(i+1)
     return set2
 
-def UnionStrings(string1, string2):
+def UnionStrings(string1, string2): # checked
     """ Calculates union of 2 serialised sets """
     arr = []
     n = len(string1)
@@ -60,7 +60,7 @@ def UnionStrings(string1, string2):
         string3 = string3 + i
     return string3
 
-def IntersectionStrings(string1, string2):
+def IntersectionStrings(string1, string2):      # checked
     """ Calculates intersection of 2 serialised sets """
     n = len(string1)
     res = 0
@@ -69,7 +69,7 @@ def IntersectionStrings(string1, string2):
             res+=1
     return res
 
-def CalcIntersectionSum(ml):
+def CalcIntersectionSum(ml):        # checked
     """ Calculate sum of intersections obtained by placing a crossing set at a particular position """
     prefix_sets = [ml[0]]
     suffix_sets = [ml[-1]]
@@ -85,7 +85,7 @@ def CalcIntersectionSum(ml):
         res+=IntersectionStrings(prefix_sets[i], suffix_sets[n-2-i])
     return res
     
-def UnionAll(arr, length):
+def UnionAll(arr, length):  # checked
     """ Calculate union of serialised sets present in arr"""
     res=""
     res1 = list()
@@ -99,7 +99,7 @@ def UnionAll(arr, length):
         res = res+c
     return res
 
-def GetMBRInNDDS(reclist, dimen):
+def GetMBRInNDDS(reclist, dimen):   # checked
     rec = []
     for i in range(0,dimen):
         s1 = set()
@@ -108,7 +108,7 @@ def GetMBRInNDDS(reclist, dimen):
         rec.append(s1)
     return rec
 
-def BuildAuxTree(node, d, length):
+def BuildAuxTree(node, d, length):  # checked
     n = len(node.dmbrs)
     l = set()
     f = list()
@@ -118,7 +118,6 @@ def BuildAuxTree(node, d, length):
     for letter in l:
         t = aux_tree_node()
         t.letters.add(letter)
-        # t.sets.add(serialize_dset(set([letter]), length))
         f.append(t)
     #sorting all Dth component sets by size in ascending order and break ties by frequency in descending order
     dict1 = dict()
@@ -163,13 +162,6 @@ def BuildAuxTree(node, d, length):
                 t1.sets = t1.sets.union(t.sets)
                 t1.letters = t1.letters.union(t.letters)
                 t.parent = t1
-        # for idx in idx_list:
-        #     t=f[idx]
-        #     f.remove(t)
-        #     t1.freq += t.freq
-        #     t1.sets = t1.sets.union(t.sets)
-        #     t1.letters = t1.letters.union(t.letters)
-        #     t.parent = t1
         f1.append(t1)
         f = f1.copy()
     if len(f)>1:
@@ -182,7 +174,7 @@ def BuildAuxTree(node, d, length):
         return newroot
     return f[0]
 
-def SortComponentSets(t, length):
+def SortComponentSets(t, length):   # checked
     if t.height == 0:
         return list(t.sets) 
     l1 = list()
@@ -191,7 +183,7 @@ def SortComponentSets(t, length):
     dict1 = dict()
     # Arranging subtrees in list based on frequencies
     s1=list(t.children)
-    s1=sorted(s1, key=lambda x: x.freq, reverse = True)
+    s1=sorted(s1, key=lambda x: x.freq, reverse = False)         # check with reverse order
     for x in s1:
         if x.freq > 0:
             if w1<w2:
@@ -267,7 +259,7 @@ def SortComponentSets(t, length):
     # print(len(res_ml))
     return res_ml
 
-def ChoosePartitionSet(node, ndds_lengths, ddimen, m, M):
+def ChoosePartitionSet(node, ndds_lengths, ddimen, m, M):   # checked
     """ Choose partition sets for ndds for all dimenions"""
     partition_set = list()
     # print('dmbrs = '+str(node.dmbrs))
@@ -301,13 +293,13 @@ def ChoosePartitionSet(node, ndds_lengths, ddimen, m, M):
             partition_set.append([p,i])
     return partition_set
 
-def OverlapInNDDS(rec1, rec2, ddimen, ndds_lengths):
+def OverlapInNDDS(rec1, rec2, ddimen, ndds_lengths):        # checked
     area = 1
     for i in range(0,ddimen):
-        area*=len(rec1[i].union(rec2[i]))/ndds_lengths[i]
+        area*=len(rec1[i].intersection(rec2[i]))/ndds_lengths[i]
     return area
 
-def ChooseBestPartition(partition_set, ndds_lengths, ddimen, node):
+def ChooseBestPartition(partition_set, ndds_lengths, ddimen, node):     # checked
     """ Select best partition among chosen partitions """
     minOverlap = sys.maxsize
     maxSpan = 0
@@ -328,7 +320,7 @@ def ChooseBestPartition(partition_set, ndds_lengths, ddimen, node):
         dimen = partition_set[i][1]
         overlap = OverlapInNDDS(p1, p2, ddimen, ndds_lengths)
         span = len(x[dimen])
-        balance = max(len(p1[dimen]), len(p2[dimen])) / min(len(p1[dimen]), len(p2[dimen]))
+        balance = abs(len(p1[dimen])-len(p2[dimen])) #max(len(p1[dimen]), len(p2[dimen])) / min(len(p1[dimen]), len(p2[dimen]))
         # Applying hs-1
         if overlap < minOverlap:
             minOverlap = overlap

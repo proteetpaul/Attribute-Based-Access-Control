@@ -5,9 +5,9 @@ def SortEntries(node, dimen, length, m, M):
     arr = []
     for i in range(0,M+1):
         arr.append([node.cmbrs[i], i])
-    arr = sorted(arr, key=lambda x: x[0][dimen][0])
+    arr = sorted(arr, key=lambda x: (x[0][dimen][0], x[0][dimen][1]))     # 1st wrt lower bound then wrt upper bound
     partitions = list()
-    for i in range(m,M-m+1):
+    for i in range(m,M-m+2):        # upper bound should be M-m+2 (check)
         p1=[]
         for j in range(0,i):
             p1.append(arr[j][1])
@@ -23,10 +23,10 @@ def OverlapInCDS(rec1, rec2, cdimen, cds_lengths):
     for i in range(0, cdimen):
         if rec1[i][1]<=rec2[i][0] or rec1[i][0]>=rec2[i][1]:
             return 0
-        area *= (min(rec1[i][1],rec2[i][1]) - min(rec1[i][0],rec2[i][0])) / cds_lengths[i]
+        area *= (min(rec1[i][1],rec2[i][1]) - max(rec1[i][0],rec2[i][0])) / cds_lengths[i]          # check this
     return area
 
-def GetMBRInCDS(reclist, cdimen):
+def GetMBRInCDS(reclist, cdimen):       # checked
     mbr = []
     for i in range(0, cdimen):
         min1 = sys.maxsize
@@ -37,7 +37,7 @@ def GetMBRInCDS(reclist, cdimen):
         mbr.append([min1, max1])
     return mbr
 
-def SelectPartition(node, partition_set, cds_lengths, cdimen):
+def SelectPartition(node, partition_set, cds_lengths, cdimen):      # checked
     # Applying hs1: minimum overlap
     idx=[]
     minOverlap = sys.maxsize
@@ -58,10 +58,8 @@ def SelectPartition(node, partition_set, cds_lengths, cdimen):
         dim = partition_set[i][1]
         y1 = p1[dim][1]-p1[dim][0]
         y2 = p2[dim][1]-p2[dim][0]
-        balance = max(y1,y2)
-        if min(y1,y2) != 0:
-            balance = max(y1,y2)/min(y1,y2)
-        span = max(y1,y2) - min(y1,y2)
+        balance = abs(y1-y2) / cds_lengths[dim]        # Normalised
+        span = (max(p1[dim][1],p2[dim][1]) - min(p1[dim][0], p2[dim][0])) / cds_lengths[dim]        # Normalised
         x = OverlapInCDS(p1, p2, cdimen, cds_lengths)
         if x < minOverlap:
             idx = [i]

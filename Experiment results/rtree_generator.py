@@ -5,7 +5,6 @@ import sys
 import math
 from rtree_node import node
 from anytree import RenderTree
-import Rtree_depth
 import resource
 
 curid = 1
@@ -16,7 +15,7 @@ dimen = 0
 def calcM():
     """ Function to calculate M value for R tree"""
     global dimen
-    pagesize = resource.getpagesize()*2 #Taking page size as 8kb
+    pagesize = resource.getpagesize()
     recsize = dimen * 2 * 4
     ptrsize = 8 # Taking size of pointer as 8 bytes
     M = pagesize/(recsize + ptrsize)
@@ -254,10 +253,9 @@ def insert(root, rectangle):
         ll = SplitNode(l)
     return AdjustTree(l, ll, idx)
 
-def build_rtree(nr):
-    global dimen,M,m, curid, rootid
-    inputfilename = str(nr)+"rectangles.txt"
-    inputfile = open(inputfilename, "r")
+def build_rtree():
+    global dimen,M,m
+    inputfile = open("rectangles.txt", "r")
     rectangle_set = json.load(inputfile)
 
     nrectangles = len(rectangle_set)
@@ -269,14 +267,11 @@ def build_rtree(nr):
     print(str(M)+' '+str(m))
     for rec in rectangle_set:
         root = insert(root, rec)
-    for pre, _, node1 in RenderTree(root):
-        x = len(node1.children_)
-        print("%s%s %s" % (pre, str(node1.id), str(
-            len(node1.bounding_rectangles))))
-    print(curid)
+        # for pre, _, node1 in RenderTree(root):
+        #     x = len(node1.children_)
+        #     print("%s%s %s" % (pre, str(node1.id), str(
+        #         len(node1.bounding_rectangles))))
+        # print()
     outputfile = open("rtree.pkl", "wb")
     pickle.dump(root, outputfile, -1)
-    outputfile.close()
-    Rtree_depth.get_depth()
-    curid = 1
-    rootid = 0
+build_rtree()

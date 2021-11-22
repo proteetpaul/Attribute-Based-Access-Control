@@ -5,10 +5,11 @@ import math
 import pickle
 from cnd_tree_classes import *
 
-def calcDist(p1, rec, cdimen, ddimen):
-    t = 0.01
+def calcDist(p1, rec, cdimen, ddimen):      # checked
+    t = 1
     dist = 0
     for i in range(0,cdimen):
+        x1 = p1.c_arr[i]
         x=p1.c_arr[i][0]
         y=rec.c_arr[i]
         if x<y[0]-t or x>y[1]+t:
@@ -35,12 +36,14 @@ def seq_search_nn(nr):
     recfilename = str(nr)+"rectangles.pkl"
     recfile = open(recfilename,"rb")
     reclist = pickle.load(recfile)
-    queriesfile = open("nnqueries.pkl","rb")
+    queriesfile = open(str(nr)+"nnqueries.pkl","rb")
     outfilename = str(nr)+"rectangles_nnSeqSearchOutput.txt"
     outputfile = open(outfilename,"w")
     queries = pickle.load(queriesfile)
     cdimen = len(reclist[0].c_arr)
     ddimen = len(reclist[0].d_arr)
+    print(cdimen)
+    print(ddimen)
     res = []
     i = 0
     for point in queries:

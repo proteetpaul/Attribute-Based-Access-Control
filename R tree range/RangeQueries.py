@@ -4,11 +4,9 @@ import nearest_neighbor
 import pickle
 from rtree_util import calcMinDist
 from rtree_node import node
-import matplotlib.pyplot as plt
 import math
 
 def range_search(node, dist, reslist, point, dimen, nodesVisited):
-    k = 1 + 2 * node.height
     nodesVisited += 1
     if node.isLeaf == 1:
         for rec in node.bounding_rectangles:
@@ -17,16 +15,16 @@ def range_search(node, dist, reslist, point, dimen, nodesVisited):
         return nodesVisited
     n = len(node.bounding_rectangles)
     for i in range(0,n):
-        if calcMinDist(point, node.bounding_rectangles[i], dimen) * k <= dist:
+        if calcMinDist(point, node.bounding_rectangles[i], dimen) <= dist:
             nodesVisited = range_search(node.children_[i], dist, reslist, point, dimen, nodesVisited)
     return nodesVisited
     
 def range_queries(nr):
-    queryfile = open("rangequeries.txt","r")
+    queryfile = open(str(nr)+"rangequeries.txt","r")
     rtreefile = open("rtree.pkl","rb")
-    outfilename = str(nr)+"rectangles_approxrangeoutput.txt"
+    outfilename = str(nr)+"rectangles_rangeoutput.txt"
     outfile = open(outfilename, "w")
-    resfile = open("ApproxRangeResults_RTree.txt","a")
+    resfile = open("RangeResults_RTree.txt","a")
     root = pickle.load(rtreefile)
     dimen = len(root.bounding_rectangles[0])
     queries=json.load(queryfile)

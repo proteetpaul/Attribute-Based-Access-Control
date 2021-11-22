@@ -9,11 +9,10 @@ def generate_queries(nr):
     nnfilename = str(nr)+"rectangles_nnSeqSearchOutput.txt"
     nnfile = open(nnfilename, "r")
     nnres = json.load(nnfile)
-    queryfile = open("nnqueries.pkl","rb")
+    queryfile = open(str(nr)+"nnqueries.pkl","rb")
     queries = pickle.load(queryfile)
-    outfile = open("rangequeries.txt","w")
+    outfile = open(str(nr)+"rangequeries.txt","w")
     rangequeries=[]
-    maxdist = int(input("Enter maxdist value: "))
 
     for i in range(0,len(queries)):
         arr = []

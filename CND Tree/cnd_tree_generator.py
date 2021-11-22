@@ -20,7 +20,7 @@ M, m = 0,0
 def calcM():
     """ Function to calculate M value for R tree"""
     pagesize = resource.getpagesize() #Taking page size as 8kb
-    recsize = (cdimen+ddimen) * 2 * 4
+    recsize = (cdimen*2) * 4
     ptrsize = 8 # Taking size of pointer as 8 bytes
     M = pagesize/(recsize + ptrsize)
     print(M)
@@ -28,31 +28,42 @@ def calcM():
     m = math.floor(M/2)
     return M, m
 
-def CalcAreaInCDS(rectangle, cdimen, cds_lengths):
+def calcM_HDS():
+    """ Function to calculate M value for CND tree"""
+    pagesize = resource.getpagesize() #Taking page size as 8kb
+    recsize = (cdimen*2 ) * 4 + ddimen * 30
+    ptrsize = 8 # Taking size of pointer as 8 bytes
+    M = pagesize/(recsize + ptrsize)
+    print(M)
+    M = math.floor(M)
+    m = math.floor(M/2)
+    return M, m
+
+def CalcAreaInCDS(rectangle, cdimen, cds_lengths):          # checked
     area = 1
     for i in range(0,cdimen):
         area *= (rectangle[i][1]-rectangle[i][0])/cds_lengths[i]
     return area
 
-def CalcAreaInNDDS(rectangle, ddimen, hdds_lengths):
+def CalcAreaInNDDS(rectangle, ddimen, hdds_lengths):        # checked
     area = 1
     for i in range(0, ddimen):
         area *= len(rectangle[i])/hdds_lengths[i]
     return area
 
-def GetMergedRectCDS(rec1, rec2):
+def GetMergedRectCDS(rec1, rec2):       # checked
     rec3 = []
     for i in range(0,cdimen):
         rec3.append([min(rec1[i][0],rec2[i][0]), max(rec1[i][1],rec2[i][1])])
     return rec3
 
-def GetMergedRectNDDS(rec1, rec2):
+def GetMergedRectNDDS(rec1, rec2):      # checked
     rec3 = []
     for i in range(0,ddimen):
         rec3.append(rec1[i].union(rec2[i]))
     return rec3
 
-def ChooseLeaf(root, rectangle):
+def ChooseLeaf(root, rectangle):       # checked
     if root.isLeaf:
         return root
     cnt = 0
@@ -65,16 +76,15 @@ def ChooseLeaf(root, rectangle):
             if rectangle.d_arr[j].issubset(rec[j]) == False:
                 f=0
                 break
-        rec=root.cmbrs[i]
-        for j in range(0,cdimen):
-            # if rectangle.c_arr[j].issubset(rec[j]) == False:
-            if rectangle.c_arr[j][0] <= rec[j][0] and rectangle.c_arr[j][1] >= rec[j][1]:
-                f=0
-                break
+        if cdimen > 0:
+            rec=root.cmbrs[i]
+            for j in range(0,cdimen):
+                if rectangle.c_arr[j][0] <= rec[j][0] or rectangle.c_arr[j][1] >= rec[j][1]:
+                    f=0
+                    break
         if f==1:
             cnt += 1
             idx.append(i)
-        i += 1
     
     if cnt==1:
         return ChooseLeaf(root.children_[idx[0]], rectangle)
@@ -82,10 +92,12 @@ def ChooseLeaf(root, rectangle):
         minarea = sys.maxsize
         idx1 = 0
         for j in idx:
-            area = CalcAreaInCDS(root.cmbrs[j], cdimen, cds_lengths) * CalcAreaInNDDS(root.dmbrs[j], ddimen, ndds_lengths)
-            if area<minarea:
+            area = CalcAreaInNDDS(root.dmbrs[j], ddimen, ndds_lengths)
+            if cdimen > 0:
+                area *= CalcAreaInCDS(root.cmbrs[j], cdimen, cds_lengths)
+            if area < minarea:
                 idx1 = j
-                area = minarea
+                minarea = area
         return ChooseLeaf(root.children_[idx1], rectangle)
     
     minOverlap = sys.maxsize
@@ -93,12 +105,17 @@ def ChooseLeaf(root, rectangle):
     idx_list = []
     for i in range(0,n):
         overlapArea = 0
-        rec1 = GetMergedRectCDS(root.cmbrs[i], rectangle.c_arr)
+        rec1 = []
+        if cdimen > 0:
+            rec1 = GetMergedRectCDS(root.cmbrs[i], rectangle.c_arr)
         rec2 = GetMergedRectNDDS(root.dmbrs[i], rectangle.d_arr)
         for j in range(0,n):
             if(j==i): continue
-            overlapArea += OverlapInCDS(root.cmbrs[j], rec1, cdimen, cds_lengths) \
-                * OverlapInNDDS(rec2,root.dmbrs[j], ddimen, ndds_lengths)
+            if cdimen > 0:
+                overlapArea += OverlapInCDS(root.cmbrs[j], rec1, cdimen, cds_lengths) \
+                    * OverlapInNDDS(rec2,root.dmbrs[j], ddimen, ndds_lengths)
+            else:
+                overlapArea +=  OverlapInNDDS(rec2,root.dmbrs[j], ddimen, ndds_lengths)
         if overlapArea < minOverlap:
             idx_list = [i]
             minOverlap = overlapArea
@@ -110,37 +127,42 @@ def ChooseLeaf(root, rectangle):
     minEnlargement = sys.maxsize
     idx1 = -1
     for idx in idx_list:
-        rec1 = GetMergedRectCDS(root.cmbrs[i], rectangle.c_arr)
+        rec1 = []
+        if cdimen > 0:
+            rec1 = GetMergedRectCDS(root.cmbrs[i], rectangle.c_arr)
         rec2 = GetMergedRectNDDS(root.dmbrs[i], rectangle.d_arr)
-        area = CalcAreaInCDS(root.cmbrs[j], cdimen, cds_lengths) * CalcAreaInNDDS(root.dmbrs[j], ddimen, ndds_lengths)
+        area = CalcAreaInNDDS(root.dmbrs[j], ddimen, ndds_lengths)
+        if cdimen > 0:
+            area *= CalcAreaInCDS(root.cmbrs[j], cdimen, cds_lengths)
+        
         enlargedArea = CalcAreaInCDS(rec1, cdimen, cds_lengths) * CalcAreaInNDDS(rec2, ddimen, ndds_lengths)
         if enlargedArea - area <= minEnlargement:
             minEnlargement = enlargedArea - area
             idx1 = idx
     return ChooseLeaf(root.children_[idx1], rectangle)
 
-def Merge2D(rec1, rec2):
+def Merge2D(rec1, rec2):        # checked
     mergedRec = []
     mergedRec.append(rec1[0].union(rec2[0]))
     mergedRec.append( [min(rec1[1][0], rec2[1][0]), max(rec1[1][1], rec2[1][1])] )
     return mergedRec
 
-def calcPerimeter2D(rec, cdim_length, ddim_length):
+def calcPerimeter2D(rec, cdim_length, ddim_length):     # checked
     p = len(rec[0])/ddim_length + (rec[1][1]-rec[1][0])/cdim_length
     return p
 
-def calcArea2D(rec, cdim_length, ddim_length):
-    a = len(rec[0])/ddim_length * (rec[1][1]-rec[1][0])/ddim_length
+def calcArea2D(rec, cdim_length, ddim_length):      # checked
+    a = len(rec[0])/ddim_length * (rec[1][1]-rec[1][0])/cdim_length
     return a
 
-def OverlapArea2D(rec1, rec2, cdim_length, ddim_length):
+def OverlapArea2D(rec1, rec2, cdim_length, ddim_length):        # checked
     if rec2[1][1]<=rec1[1][0] or rec1[1][1]<=rec2[1][0]:
         return 0
     a = len(rec1[0].union(rec2[0]))/ddim_length
     x = (min(rec1[1][1], rec2[1][1])-max(rec1[1][0], rec2[1][0]))/cdim_length
     return a*x
 
-def CombinePartitions(cpartitions, dpartitions, node, M, cds_lengths, nds_lengths):
+def CombinePartitions(cpartitions, dpartitions, node, M, cds_lengths, nds_lengths):     # checked
     # for x in cpartitions:
     #     print(x[0][0])
     #     print(x[0][1])
@@ -186,18 +208,18 @@ def CombinePartitions(cpartitions, dpartitions, node, M, cds_lengths, nds_length
     cg2_2d = []
     set_cg1 = set()
     set_cg2 = set()
-    min1 = -sys.maxsize
-    max1 = sys.maxsize
+    min1 = sys.maxsize
+    max1 = -sys.maxsize
     for i in cg1:
-        set_cg1.union(node.dmbrs[i][ddim])
+        set_cg1 = set_cg1.union(node.dmbrs[i][ddim])
         max1 = max(max1, node.cmbrs[i][cdim][1])
         min1 = min(min1, node.cmbrs[i][cdim][0])
     cg1_2d.append(set_cg1)
     cg1_2d.append([min1, max1])
-    min1 = -sys.maxsize
-    max1 = sys.maxsize
+    min1 = sys.maxsize
+    max1 = -sys.maxsize
     for i in cg2:
-        set_cg2.union(node.dmbrs[i][ddim])
+        set_cg2 = set_cg2.union(node.dmbrs[i][ddim])
         max1 = max(max1, node.cmbrs[i][cdim][1])
         min1 = min(min1, node.cmbrs[i][cdim][0])
     cg2_2d.append(set_cg2)
@@ -209,8 +231,37 @@ def CombinePartitions(cpartitions, dpartitions, node, M, cds_lengths, nds_length
     perimeter1 = calcPerimeter2D(cg1_2d, cdim_length, ddim_length)
     perimeter2 = calcPerimeter2D(cg2_2d, cdim_length, ddim_length)
 
+    s = set()
+    # for i in s1:
+    #     rec = []
+    #     rec.append(node.dmbrs[i][ddim])
+    #     rec.append(node.cmbrs[i][cdim])
+    #     merge1 = Merge2D(cg1_2d, rec)
+    #     merge2 = Merge2D(cg2_2d, rec)
+    #     x1=0
+    #     x2=0
+    #     if merge1 == cg1_2d:
+    #         x1 = 1
+    #     if merge2 == cg2_2d:
+    #         x2 = 1
+    #     if x1==0 and x2==0:
+    #         s.add(i)
+    #         continue
+    #     if x1==1 and x2==1:
+    #         if len(cg1) < len(cg2):
+    #             cg1.add(i)
+    #         else:
+    #             cg2.add(i)
+    #         continue
+    #     if x1==1:
+    #         cg1.add(i)
+    #     else:
+    #         cg2.add(i)
+
     # print(cg1)
     # print(cg2)
+    # Each node should have atleast m entries
+    cnt = len(s1)
     for i in s1:
         rec = []
         rec.append(node.dmbrs[i][ddim])
@@ -220,17 +271,34 @@ def CombinePartitions(cpartitions, dpartitions, node, M, cds_lengths, nds_length
         # Applying hs-5
         overlap1 = OverlapArea2D(merge1, cg2_2d, cdim_length, ddim_length)
         overlap2 = OverlapArea2D(merge2, cg1_2d, cdim_length, ddim_length)
+
+        if len(cg1)+cnt == m:
+            cg1_2d = merge1
+            area1 = calcArea2D(cg1_2d, cdim_length, ddim_length)
+            perimeter1 = calcPerimeter2D(cg1_2d, cdim_length, ddim_length)
+            cg1.add(i)
+            cnt -= 1
+            continue
+        if len(cg2)+cnt == m:
+            cg2_2d = merge2
+            area2 = calcArea2D(cg2_2d, cdim_length, ddim_length)
+            perimeter2 = calcPerimeter2D(cg2_2d, cdim_length, ddim_length)
+            cg2.add(i)
+            cnt -= 1
+            continue
         if overlap1 < overlap2:
             cg1_2d = merge1
             area1 = calcArea2D(cg1_2d, cdim_length, ddim_length)
             perimeter1 = calcPerimeter2D(cg1_2d, cdim_length, ddim_length)
             cg1.add(i)
+            cnt -= 1
             continue
         if overlap2 < overlap1:
             cg2_2d = merge2
             area2 = calcArea2D(cg2_2d, cdim_length, ddim_length)
             perimeter2 = calcPerimeter2D(cg2_2d, cdim_length, ddim_length)
             cg2.add(i)
+            cnt -= 1
             continue
         # Applying hs-6
         mergeArea1 = calcArea2D(merge1, cdim_length, ddim_length)
@@ -245,22 +313,27 @@ def CombinePartitions(cpartitions, dpartitions, node, M, cds_lengths, nds_length
             t2 /= (mergeArea2-area2)
         if t1 < t2 or (t1==t2 and len(cg1) < len(cg2)):
             cg1_2d = merge1
-            area1 = calcArea2D(cg1_2d, cdim_length, ddim_length)
-            perimeter1 = calcPerimeter2D(cg1_2d, cdim_length, ddim_length)
+            area1 = mergeArea1      #calcArea2D(cg1_2d, cdim_length, ddim_length)
+            perimeter1 = mergePerimeter1    #calcPerimeter2D(cg1_2d, cdim_length, ddim_length)
             cg1.add(i)
         else:
             cg2_2d = merge2
-            area2 = calcArea2D(cg2_2d, cdim_length, ddim_length)
-            perimeter2 = calcPerimeter2D(cg2_2d, cdim_length, ddim_length)
+            area2 = mergeArea2      #calcArea2D(cg2_2d, cdim_length, ddim_length)
+            perimeter2 = mergePerimeter2       #calcPerimeter2D(cg2_2d, cdim_length, ddim_length)
             cg2.add(i)
+        cnt -= 1
+    if len(cg1)<m or len(cg2)<m:
+        print("Underflow")
     return [cg1, cg2]
 
-def SplitNode(node):
+def SplitNode(node):        # checked
     global curid
     cds_partitions = list()
     for i in range(0,cdimen):
         cds_partitions.extend(SortEntries(node, i, cds_lengths[i], m, M))
-    idx = SelectPartition(node, cds_partitions, cds_lengths, cdimen)
+    idx = []
+    if cdimen > 0:
+        idx = SelectPartition(node, cds_partitions, cds_lengths, cdimen)
     bestCDSPartitions = []
     for i in idx:
         bestCDSPartitions.append(cds_partitions[i])
@@ -270,21 +343,25 @@ def SplitNode(node):
     bestNDDSPartitions = []
     for i in idx1:
         bestNDDSPartitions.append(ndds_partitions[i])
-    bestPartition = CombinePartitions(bestCDSPartitions, bestNDDSPartitions, node, M, cds_lengths, ndds_lengths)
+    bestPartition = bestNDDSPartitions[0][0]
+    if cdimen > 0:
+        bestPartition = CombinePartitions(bestCDSPartitions, bestNDDSPartitions, node, M, cds_lengths, ndds_lengths)
     l = cnd_tree_node(node.id)
     ll = cnd_tree_node(curid)
     ll.isLeaf = node.isLeaf
     ll.parent = node.parent
-
     curid += 1
+
     for i in bestPartition[0]:
         l.dmbrs.append(node.dmbrs[i])
-        l.cmbrs.append(node.cmbrs[i])
+        if cdimen > 0:
+            l.cmbrs.append(node.cmbrs[i])
         if node.isLeaf == False:
             l.children_.append(node.children_[i])
     for i in bestPartition[1]:
         ll.dmbrs.append(node.dmbrs[i])
-        ll.cmbrs.append(node.cmbrs[i])
+        if cdimen > 0:
+            ll.cmbrs.append(node.cmbrs[i])
         if node.isLeaf == False:
             ll.children_.append(node.children_[i])
     node.cmbrs = l.cmbrs
@@ -307,12 +384,14 @@ def AdjustTree(l, ll, idx):
     parent = l.parent
     if parent != None:
         idx2 = getParentIndex(parent.parent, parent)
-        parent.cmbrs[idx] = GetMBRInCDS(l.cmbrs, cdimen)
+        if cdimen > 0:
+            parent.cmbrs[idx] = GetMBRInCDS(l.cmbrs, cdimen)
         parent.dmbrs[idx] = GetMBRInNDDS(l.dmbrs, ddimen)
         parent.children_[idx] = l
         if ll != None:
             parent.dmbrs.append(GetMBRInNDDS(ll.dmbrs, ddimen))
-            parent.cmbrs.append(GetMBRInCDS(ll.cmbrs, cdimen))
+            if cdimen > 0:
+                parent.cmbrs.append(GetMBRInCDS(ll.cmbrs, cdimen))
             parent.children_.append(ll)
             if len(parent.dmbrs) == M+1:
                 pp = SplitNode(parent)
@@ -326,9 +405,10 @@ def AdjustTree(l, ll, idx):
         newRoot = cnd_tree_node(curid)
         rootid = curid
         curid += 1
-        newRoot.cmbrs.append(GetMBRInCDS(l.cmbrs, cdimen))
+        if cdimen > 0:
+            newRoot.cmbrs.append(GetMBRInCDS(l.cmbrs, cdimen))
+            newRoot.cmbrs.append(GetMBRInCDS(ll.cmbrs, cdimen))
         newRoot.dmbrs.append(GetMBRInNDDS(l.dmbrs, ddimen))
-        newRoot.cmbrs.append(GetMBRInCDS(ll.cmbrs, cdimen))
         newRoot.dmbrs.append(GetMBRInNDDS(ll.dmbrs, ddimen))
 
         newRoot.children_.append(l)
@@ -343,7 +423,8 @@ def insert(root, rec):
     l = ChooseLeaf(root, rec)
     idx = getParentIndex(l.parent, l)
     l.dmbrs.append(rec.d_arr)
-    l.cmbrs.append(rec.c_arr)
+    if cdimen > 0:
+        l.cmbrs.append(rec.c_arr)
     ll = None
     if len(l.dmbrs) == M+1:
         ll = SplitNode(l)
@@ -365,18 +446,21 @@ def build_rtree(nr):
     if nrectangles == 0:
         exit
     root = cnd_tree_node(0)
-    M = 20
-    m = 10
+    M, m = 10, 5
     print(str(M)+' '+str(m))
     for rec in rectangle_set:
         # print(rec.c_arr)
         root = insert(root, rec)
-    for pre, _, node1 in RenderTree(root):
-        x = len(node1.children_)
-        print("%s%s %s" % (pre, str(node1.id), str(len(node1.cmbrs) )))
+    # for pre, _, node1 in RenderTree(root):
+    #     x = len(node1.children_)
+        # if node1.isLeaf == False:
+    #     print("%s%s %s" % (pre, str(node1.id), str(len(node1.dmbrs) )))
+        # else:
+        #     print("%s%s %s %s" % (pre, str(node1.id), str(node1.dmbrs), str(node1.cmbrs)))
     print(curid)
     outputfile = open("cndtree.pkl", "wb")
     pickle.dump(root, outputfile, -1)
+    print('Depth=' + str(root.height+1))
     outputfile.close()
     curid = 1
     rootid = 0
